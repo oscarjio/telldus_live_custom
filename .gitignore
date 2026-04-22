@@ -2,9 +2,16 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 *.zip
+*.tar.gz
 .DS_Store
 .idea/
 .vscode/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Sandbox artefacts (can be removed once you're done)
+.git-broken-*
+.git-corrupt-*
+ziFVsX2j
+PUSH.md
