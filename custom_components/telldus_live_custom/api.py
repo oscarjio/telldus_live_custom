@@ -19,6 +19,8 @@ from .const import (
     API_BASE,
     API_REQUEST_TOKEN_URL,
     API_AUTHORIZE_URL,
+    RETRY_BACKOFF_SECONDS,
+    RETRYABLE_STATUSES,
     SUPPORTED_METHODS_MASK,
 )
 
@@ -31,6 +33,10 @@ class TelldusAuthError(Exception):
 
 class TelldusApiError(Exception):
     """Raised when an API call to Telldus fails."""
+
+
+class TelldusRateLimitError(TelldusApiError):
+    """Raised when Telldus returns 429 even after our retries."""
 
 
 class TelldusLiveClient:
@@ -166,37 +172,66 @@ class TelldusLiveClient:
         token_secret: str | None,
         as_text: bool,
     ) -> Any:
-        """Sign with oauthlib in a thread, then perform the request with aiohttp."""
-        uri, headers, body = await asyncio.to_thread(
-            self._sign,
-            method,
-            url,
-            token,
-            token_secret,
-        )
-        try:
-            async with self._session.request(
-                method, uri, headers=headers, data=body, timeout=aiohttp.ClientTimeout(total=30)
-            ) as resp:
-                text = await resp.text()
-                if resp.status >= 400:
-                    raise TelldusApiError(
-                        f"{method} {url} -> HTTP {resp.status}: {text[:200]}"
-                    )
-                if as_text:
-                    return text
-                # Telldus occasionally returns empty body on success; guard against that.
-                if not text.strip():
-                    return {}
-                try:
-                    import json
-                    return json.loads(text)
-                except ValueError as err:
-                    raise TelldusApiError(
-                        f"Invalid JSON from {url}: {text[:200]}"
-                    ) from err
-        except aiohttp.ClientError as err:
-            raise TelldusApiError(f"Network error contacting Telldus: {err}") from err
+        """Sign with oauthlib in a thread, then perform the request with aiohttp.
+
+        Retries once-per-backoff-step on 429/503 so a transient rate-limit spike
+        doesn't blow away a whole update cycle.
+        """
+        last_err: Exception | None = None
+        for attempt, backoff in enumerate((0, *RETRY_BACKOFF_SECONDS)):
+            if backoff:
+                _LOGGER.debug(
+                    "Telldus %s (attempt %d) retrying after %ss",
+                    url,
+                    attempt,
+                    backoff,
+                )
+                await asyncio.sleep(backoff)
+            # Sign each attempt fresh — OAuth1 nonces must be unique.
+            uri, headers, body = await asyncio.to_thread(
+                self._sign, method, url, token, token_secret
+            )
+            try:
+                async with self._session.request(
+                    method,
+                    uri,
+                    headers=headers,
+                    data=body,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as resp:
+                    text = await resp.text()
+                    if resp.status in RETRYABLE_STATUSES:
+                        last_err = TelldusRateLimitError(
+                            f"{method} {url} -> HTTP {resp.status}"
+                        )
+                        # Honour a Retry-After header if Telldus sent one.
+                        retry_after = resp.headers.get("Retry-After")
+                        if retry_after and retry_after.isdigit():
+                            await asyncio.sleep(int(retry_after))
+                        continue  # try next backoff step
+                    if resp.status >= 400:
+                        raise TelldusApiError(
+                            f"{method} {url} -> HTTP {resp.status}: {text[:200]}"
+                        )
+                    if as_text:
+                        return text
+                    if not text.strip():
+                        return {}
+                    try:
+                        import json
+                        return json.loads(text)
+                    except ValueError as err:
+                        raise TelldusApiError(
+                            f"Invalid JSON from {url}: {text[:200]}"
+                        ) from err
+            except aiohttp.ClientError as err:
+                last_err = TelldusApiError(
+                    f"Network error contacting Telldus: {err}"
+                )
+                continue
+        # Exhausted all retries
+        assert last_err is not None
+        raise last_err
 
     def _sign(
         self,

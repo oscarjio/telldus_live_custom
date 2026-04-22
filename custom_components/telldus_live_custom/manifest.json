@@ -1,7 +1,7 @@
 {
   "domain": "telldus_live_custom",
   "name": "Telldus Live (custom)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "documentation": "https://github.com/oscarjio/telldus_live_custom",
   "issue_tracker": "https://github.com/oscarjio/telldus_live_custom/issues",
   "codeowners": ["@oscarjio"],

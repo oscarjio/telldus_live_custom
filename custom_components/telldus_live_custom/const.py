@@ -20,8 +20,13 @@ CONF_TOKEN_SECRET = "token_secret"
 CONF_REQUEST_TOKEN = "request_token"
 CONF_REQUEST_TOKEN_SECRET = "request_token_secret"
 
-# Update interval (seconds). Telldus sensor values update every few minutes.
-DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
+# Update interval. Telldus sensor values update every 5–15 minutes at the source,
+# so polling faster than this just burns rate limit without getting newer data.
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=180)
+
+# Back-off config used when Telldus responds with 429/503.
+RETRY_BACKOFF_SECONDS = (5, 15, 45)  # exponential-ish, caps at ~1 min extra per cycle
+RETRYABLE_STATUSES = {429, 503}
 
 # Telldus supported-method bitmask values
 METHOD_TURNON = 1
