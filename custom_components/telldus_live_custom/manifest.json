@@ -1,0 +1,13 @@
+{
+  "domain": "telldus_live_custom",
+  "name": "Telldus Live (custom)",
+  "version": "0.1.0",
+  "documentation": "https://github.com/oscarjio/telldus_live_custom",
+  "issue_tracker": "https://github.com/oscarjio/telldus_live_custom/issues",
+  "codeowners": ["@oscarjio"],
+  "config_flow": true,
+  "iot_class": "cloud_polling",
+  "integration_type": "hub",
+  "requirements": ["oauthlib==3.2.2"],
+  "dependencies": []
+}

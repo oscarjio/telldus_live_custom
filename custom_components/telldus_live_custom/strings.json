@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Telldus Live",
+        "description": "To let Home Assistant talk to your Tellstick, we need two application keys from Telldus.\n\n**1.** Open {keys_url} in a browser (log in with your Telldus account).\n**2.** Click **Generate a private API key** and fill in any title (e.g. *Home Assistant*).\n**3.** Copy the **Public key** and the **Private key** from the row you just created and paste them below.\n\nWhen you press Submit, Home Assistant will open a Telldus authorization page for you.",
+        "data": {
+          "public_key": "Public key",
+          "private_key": "Private key"
+        }
+      },
+      "authorize": {
+        "title": "Authorize Home Assistant on Telldus",
+        "description": "Almost done. \n\n**1.** Tap this link — it opens the Telldus authorization page:\n\n{authorize_url}\n\n**2.** Log in if asked, then press **Yes** to grant Home Assistant access.\n**3.** Come back here and press **Submit**."
+      }
+    },
+    "error": {
+      "invalid_keys": "Telldus rejected the public/private key combination. Double-check that you copied both values from the same row at pa-api.telldus.com/keys/index.",
+      "cannot_connect": "Could not reach Telldus Live. Check your internet connection and try again.",
+      "not_authorized": "The request token has not been authorized yet. Open the authorization link, press **Yes**, then come back and press Submit."
+    },
+    "abort": {
+      "already_configured": "This Telldus account is already set up in Home Assistant."
+    }
+  }
+}

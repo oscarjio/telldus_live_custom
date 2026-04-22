@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Anslut till Telldus Live",
+        "description": "För att Home Assistant ska kunna prata med din Tellstick behövs två applikationsnycklar från Telldus.\n\n**1.** Öppna {keys_url} i en webbläsare (logga in med ditt Telldus-konto).\n**2.** Klicka **Generate a private API key** och skriv valfri titel (t.ex. *Home Assistant*).\n**3.** Kopiera **Public key** och **Private key** från raden du precis skapade och klistra in nedan.\n\nNär du trycker Skicka öppnar Home Assistant en auktoriseringssida hos Telldus åt dig.",
+        "data": {
+          "public_key": "Public key",
+          "private_key": "Private key"
+        }
+      },
+      "authorize": {
+        "title": "Godkänn Home Assistant i Telldus",
+        "description": "Nästan klart.\n\n**1.** Tryck på länken — den öppnar Telldus godkännande-sida:\n\n{authorize_url}\n\n**2.** Logga in om du ombeds, tryck sedan **Yes** för att ge Home Assistant åtkomst.\n**3.** Gå tillbaka hit och tryck **Skicka**."
+      }
+    },
+    "error": {
+      "invalid_keys": "Telldus godkände inte nyckelkombinationen. Kontrollera att Public key och Private key kopierats från samma rad på pa-api.telldus.com/keys/index.",
+      "cannot_connect": "Kunde inte nå Telldus Live. Kontrollera internetanslutningen och försök igen.",
+      "not_authorized": "Request-token har inte godkänts än. Öppna länken, tryck **Yes**, kom sedan tillbaka och tryck Skicka."
+    },
+    "abort": {
+      "already_configured": "Detta Telldus-konto är redan tillagt i Home Assistant."
+    }
+  }
+}
